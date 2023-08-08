@@ -1,0 +1,100 @@
+const { Client, Intents, GatewayIntentBits } = require('discord.js');
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.MessageReactions,
+  ],
+});
+
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const commands = [
+  new SlashCommandBuilder()
+    .setName('diemdanh')
+    .setDescription('Chấm công và ghi nhớ emoji')
+    .addStringOption(option =>
+      option.setName('emoji')
+        .setDescription('Emoji cho chấm công')
+        .setRequired(false)
+    ),
+  new SlashCommandBuilder()
+    .setName('checkdiemdanh')
+    .setDescription('Hiện số lần đã chấm công'),
+  new SlashCommandBuilder()
+    .setName('setchannel')
+    .setDescription('Cài đặt kênh hoạt động cho bot')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('Kênh cần cài đặt')
+        .setRequired(true)
+    ),
+  new SlashCommandBuilder()
+    .setName('emo')
+    .setDescription('Đổi emoji cho chấm công')
+    .addStringOption(option =>
+      option.setName('emoji')
+        .setDescription('Emoji mới cho chấm công')
+        .setRequired(true)
+    ),
+].map(command => command.toJSON());
+
+const rest = new REST({ version: '9' }).setToken('YOUR_BOT_TOKEN');
+
+(async () => {
+  try {
+    console.log('Started refreshing application (/) commands.');
+
+    await rest.put(
+      Routes.applicationGuildCommands('YOUR_CLIENT_ID', 'YOUR_GUILD_ID'),
+      { body: commands },
+    );
+
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
+const diemdanhData = {};
+let activeChannel = null;
+const defaultEmoji = '📌';
+
+client.once('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
+
+  const { commandName } = interaction;
+
+  if (commandName === 'diemdanh') {
+    const emoji = interaction.options.getString('emoji') || defaultEmoji;
+    try {
+      await interaction.react(emoji);
+      diemdanhData[interaction.user.id] = emoji;
+      await interaction.reply({ content: 'Chấm công thành công!', ephemeral: true });
+    } catch (error) {
+      console.error('Không thể react emoji:', error);
+      await interaction.reply({ content: 'Có lỗi xảy ra!', ephemeral: true });
+    }
+  } else if (commandName === 'checkdiemdanh') {
+    const count = Object.values(diemdanhData).filter(e => e === diemdanhData[interaction.user.id]).length;
+    await interaction.reply(`Bạn đã chấm công ${count} lần.`);
+  } else if (commandName === 'setchannel') {
+    const channel = interaction.options.getChannel('channel');
+    activeChannel = channel;
+    await interaction.reply(`Bot sẽ hoạt động trong kênh ${channel}.`);
+  } else if (commandName === 'emo') {
+    const emoji = interaction.options.getString('emoji');
+    diemdanhData[interaction.user.id] = emoji;
+    await interaction.reply(`Emoji chấm công của bạn đã được đổi thành ${emoji}.`);
+  }
+});
+
+// Thay đổi 'YOUR_BOT_TOKEN' và 'YOUR_CLIENT_ID' thành token của bot Discord và ID của client của bạn để chạy mã
+client.login('YOUR_BOT_TOKEN');
