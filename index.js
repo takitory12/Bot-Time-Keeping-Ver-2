@@ -28,7 +28,7 @@ client.on('messageCreate', async (message) => {
     }
 
     const user_id = message.author.id;
-    const emoji = diemdanhData[user_id] || defaultEmoji;
+    const emoji = diemdanhData[user_id] || defaultEmoji; 
     try {
       await message.react(emoji);
       diemdanhData[user_id] = emoji;
@@ -68,6 +68,6 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.login('MTEzOTE4MzcwMTgxNzgxOTIxNg.G1Dw1H.83wYAnel4BEKSdJ48uNIy80z8VwH-iROK4d614');
+client.login('placeholder');
 
 
