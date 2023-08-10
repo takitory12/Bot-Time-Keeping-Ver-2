@@ -1,18 +1,15 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, Intents, ClientApplication } = require('discord.js');
 
-const intents = new GatewayIntentBits([
-  'GUILDS',
-  'GUILD_MESSAGES',
-  'MESSAGE_REACTIONS'
+const intents = new Intents([
+  Intents.FLAGS.GUILDS,
+  Intents.FLAGS.GUILD_MESSAGES,
+  Intents.FLAGS.MESSAGE_REACTIONS
 ]);
 
 const client = new Client({ intents: intents });
 
-// Lưu trạng thái chấm công của người dùng
 const diemdanhData = {};
-// Kênh mà bot sẽ hoạt động
 let activeChannel = null;
-// Emoji mặc định
 const defaultEmoji = '📌';
 
 client.once('ready', () => {
@@ -22,7 +19,7 @@ client.once('ready', () => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  const args = message.content.slice(2).trim().split(/ +/);
+  const args = message.content.slice(1).trim().split(/ +/);
   const command = args.shift().toLowerCase();
 
   if (command === 'diemdanh') {
@@ -31,7 +28,7 @@ client.on('messageCreate', async (message) => {
     }
 
     const user_id = message.author.id;
-    const emoji = diemdanhData[user_id] || defaultEmoji;
+    const emoji = diemdanhData[user_id] || defaultEmoji; 
     try {
       await message.react(emoji);
       diemdanhData[user_id] = emoji;
@@ -71,11 +68,6 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-// Thay đổi 'YOUR_BOT_TOKEN' thành token của bot Discord của bạn để chạy mã
-client.login('YOUR_BOT_TOKEN');
+client.login('placeholder');
 
-  }
-});
 
-// Thay đổi 'YOUR_BOT_TOKEN' và 'YOUR_CLIENT_ID' thành token của bot Discord và ID của client của bạn để chạy mã
-client.login('YOUR_BOT_TOKEN');
